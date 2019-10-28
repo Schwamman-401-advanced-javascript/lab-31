@@ -83,9 +83,9 @@ export default function ToDo() {
         />
       </section>
         <Details
-            showDetails={showDetails}
-            details={details}
-            toggleDetails={toggleDetails}
+          showDetails={showDetails}
+          details={details}
+          toggleDetails={toggleDetails}
         />
     </>
   );
