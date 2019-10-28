@@ -1,120 +1,92 @@
 import React from 'react';
+import { useState, useEffect } from 'react';
 import uuid from 'uuid/v4';
-import { When } from '../if';
-import Modal from '../modal';
+
+//Components
 import Header from '../header';
 import Form from '../form';
 import List from '../list';
 import Details from '../details';
 
+//Styling
 import './todo.scss';
 
-class ToDo extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-      todoList: [],
-      item: {},
-      showDetails: false,
-      details: {},
-    };
-  }
+export default function ToDo() {
 
-  handleInputChange = e => {
-    let { name, value } = e.target;
-    this.setState(state => ({
-      item: {...state.item, [name]: value},
-    }));
-  };
+  let initialList = [];
+  let [todoList, setTodoList] = useState(initialList);
+  
+  let initialItem = {};
+  let [item, setItem] = useState(initialItem);
 
-  handleSubmit = (e) => {
-    this.props.handleSubmit(this.state.item);
-  };
+  let initialShowDetails = false;
+  let [showDetails, setShowDetails] = useState(initialShowDetails);
 
-  addItem = (e) => {
+  let initialDetails = {};
+  let [details, setDetails] = useState(initialDetails);
 
-    e.preventDefault();
-    e.target.reset();
-
-    const defaults = { _id: uuid(), complete:false };
-    const item = Object.assign({}, this.state.item, defaults);
-
-    this.setState(state => ({
-      todoList: [...state.todoList, item],
-      item: {},
-    }));
-
-  };
-
-  deleteItem = id => {
-
-    this.setState(state => ({
-      todoList: state.todoList.filter(item => item._id !== id),
-    }));
-
-  };
-
-  saveItem = updatedItem => {
-
-    this.setState(state => ({
-      todoList: state.todoList.map(item =>
-        item._id === updatedItem._id ? updatedItem : item
-      ),
-    }));
-
-  };
-
-  toggleComplete = id => {
-    this.setState(state => ({
-      todoList: state.todoList.map(item =>
+  let toggleComplete = id => {
+    setTodoList(
+      todoList.map(item =>
         item._id === id ? {
           ...item,
           complete: !item.complete,
         } : item
-      ),
+      )
+    )
+  };
+
+  let toggleDetails = id => {
+    let toggledItem = todoList.find(item => item._id === id);
+    setDetails(toggledItem || {});
+    setShowDetails(!!toggledItem);
+  }
+
+  let addItem = (e) => {
+    e.preventDefault();
+    e.target.reset();
+
+    item['_id'] = uuid();
+    item['complete'] = false;
+  
+    setTodoList(state => ([...todoList, item]));
+    setItem( _ => ({}));  
+  };
+
+  let deleteItem = id => {
+    let newList = todoList.filter(item => item._id !== id);
+    setTodoList(newList);
+  };
+
+  let handleInputChange = e => {
+    let { name, value } = e.target;
+    setItem(state => ({
+      ...state, [name]: value
     }));
   };
 
-  toggleDetails = id => {
-    this.setState(state => {
-      let item = state.todoList.find(item => item._id === id);
-      return {
-        details: item || {},
-        showDetails: !!item,
-      };
-    });
-  }
-
-  render() {
-
-    return (
-      <>
-        <Header 
-          todoList={this.state.todoList}
+  return (
+    <>
+      <Header 
+        todoList={todoList}
+      />
+      <section className="todo">
+        <Form 
+          addItem={addItem}
+          handleInputChange={handleInputChange}
         />
-        <section className="todo">
-          <Form 
-            addItem={this.addItem}
-            handleInputChange={this.handleInputChange}
-          />
-          <List 
-            todoList={this.state.todoList}
-            toggleComplete={this.toggleComplete}
-            toggleDetails={this.toggleDetails}
-            deleteItem={this.deleteItem}
-          />
-        </section>
-        <When condition={this.state.showDetails}>
-          <Modal title="To Do Item" close={this.toggleDetails}>
-            <Details
-                showDetails={this.state.showDetails}
-                details={this.state.details}
-            />
-          </Modal>
-        </When>
-      </>
-    );
-  }
+        <List 
+          todoList={todoList}
+          toggleComplete={toggleComplete}
+          toggleDetails={toggleDetails}
+          deleteItem={deleteItem}
+        />
+      </section>
+        <Details
+            showDetails={showDetails}
+            details={details}
+            toggleDetails={toggleDetails}
+        />
+    </>
+  );
 }
-
-export default ToDo;
